@@ -31,11 +31,12 @@ public class Convolution {
 						{
 							int y = i+i2;
 							int x = j+j2;
-							if(y>=0 && y<height && x>=0 && x<width)
-							{
-								result.getData()[i][j][k]+=
-										kernel.getData()[i2+h][j2+w][0]*src.getData()[y][x][k];
-							}
+							if(y<0) y=0;
+							if(y>=height) y=height-1;
+							if(x<0) x=0;
+							if(y>=width) y=width-1;
+							result.getData()[i][j][k]+=
+									kernel.getData()[i2+h][j2+w][0]*src.getData()[y][x][k];
 						}
 					}
 				}

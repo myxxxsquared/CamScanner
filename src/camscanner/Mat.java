@@ -1,6 +1,5 @@
 package camscanner;
 
-
 public class Mat
 {
 	private int width;
@@ -19,6 +18,18 @@ public class Mat
 		this.height = height;
 		this.depth = depth;
 		data = new float[height][width][depth];
+	}
+	
+	public Mat(int width, int height, int depth, float[][][] data)
+	{
+		this.width = width;
+		this.height = height;
+		this.depth = depth;
+		this.data = new float[height][width][depth];
+		for(int i = 0; i < height; ++i)
+			for(int j = 0; j < width; ++j)
+				for(int k = 0; k < depth; ++k)
+					this.data[i][j][k] = data[i][j][k];
 	}
 		
 	public int getWidth()
