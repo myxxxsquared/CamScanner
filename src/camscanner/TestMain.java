@@ -5,6 +5,8 @@ import java.io.File;
 import javax.imageio.*;
 import javax.swing.*;
 
+import camscanner.LineDetection.Line;
+
 public class TestMain {
 
 	public static void main(String[] args) {
@@ -20,6 +22,9 @@ public class TestMain {
 		
 		Mat gray = Mat.ToGrayMat(image);
 		Mat result = EdgeDetection.canny(gray);
+		
+		Line[] lines = LineDetection.hough(result);
+		
 		JFrame frame = new JFrame("titlename");
 		frame.setSize(500, 500);
 		frame.setVisible(true);

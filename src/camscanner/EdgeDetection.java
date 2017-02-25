@@ -20,6 +20,9 @@ public class EdgeDetection {
 		return new Mat(3, 3, 1, data);
 	}
 	
+	/**
+	 * ¸ßË¹¾í»ýºË
+	 */
 	public static Mat generateGaussKernel()
 	{
 		float [][][] data = {{{0.002969f},{0.013306f},{0.021938f},{0.013306f},{0.002969f}},
@@ -30,9 +33,17 @@ public class EdgeDetection {
 		return new Mat(5, 5, 1, data);
 	}
 	
+	/**
+	 * Canny±ßÔµ¼ì²â
+	 */
 	public static Mat canny(Mat src)
 	{
 		assert(src.getDepth()==1);
+		
+		final float MINVAL = 0.05f;
+		final float MAXVAL = 0.15f;
+		final int LOOPNUM = 3;
+		final int NMSRANGE = 1;
 		
 		int width = src.getWidth();
 		int height = src.getHeight();
@@ -63,10 +74,7 @@ public class EdgeDetection {
 					theta[i][j] = 1;
 			}
 		
-		final float MINVAL = 0.05f;
-		final float MAXVAL = 0.15f;
-		final int LOOPNUM = 3;
-		final int NMSRANGE = 1;
+		
 		
 		int[][] direction = {{1, 0}, {1, 1}, {0, 1}, {1, -1}};
 		float[][] rhonms = new float[height][width];
