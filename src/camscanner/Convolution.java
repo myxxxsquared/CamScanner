@@ -34,7 +34,8 @@ public class Convolution {
 							if(y<0) y=0;
 							if(y>=height) y=height-1;
 							if(x<0) x=0;
-							if(y>=width) y=width-1;
+							if(x>=width) x=width-1;
+							//System.out.printf("i:%d,j:%d,k:%d,i2+h%d,j2+w%d,%d,%d,%d", args)
 							result.getData()[i][j][k]+=
 									kernel.getData()[i2+h][j2+w][0]*src.getData()[y][x][k];
 						}

@@ -1,5 +1,7 @@
 package camscanner;
 
+import java.awt.image.BufferedImage;
+
 public class Mat
 {
 	private int width;
@@ -30,6 +32,27 @@ public class Mat
 			for(int j = 0; j < width; ++j)
 				for(int k = 0; k < depth; ++k)
 					this.data[i][j][k] = data[i][j][k];
+	}
+	
+	public static Mat ToGrayMat(BufferedImage image)
+	{
+		int width = image.getWidth();
+		int height = image.getHeight();
+		int depth = image.getRaster().getNumBands();
+		
+		Mat result = new Mat(image.getWidth(), image.getHeight(), 1);
+		int[] data = image.getRaster().getPixels(0, 0, image.getWidth(), image.getHeight(), (int[])null);
+		
+		int index = 0;
+		for(int i = 0; i < height; ++i)
+			for(int j = 0; j < width; ++j)
+			{
+				result.data[i][j][0] = 0.0f;
+				for(int k = 0; k < depth; ++k)
+					result.data[i][j][0] += data[index++];
+				result.data[i][j][0]/=765.0f;
+			}
+		return result;
 	}
 		
 	public int getWidth()

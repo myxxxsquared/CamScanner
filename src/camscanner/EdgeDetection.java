@@ -41,8 +41,8 @@ public class EdgeDetection {
 		Mat sx = Convolution.convolution(blur, generateSobelKernelX());
 		Mat sy = Convolution.convolution(blur, generateSobelKernelY());
 		
-		int[][] theta = new int[width][height];
-		float[][] rho = new float[width][height];
+		int[][] theta = new int[height][width];
+		float[][] rho = new float[height][width];
 		for(int i = 0; i < height; ++i)
 			for(int j = 0; j < width; ++j)
 			{
@@ -54,20 +54,79 @@ public class EdgeDetection {
 					dx = 0.00001f;
 				float d = dy/dx;
 				if(d > 1.73 || d < -1.73)
-					theta[i][j] = 2;
+					theta[i][j] = 1;
 				else if(d > -0.577 && d < 0.577)
-					theta[i][j] = 0;
+					theta[i][j] = 2;
 				else if(d > 0)
 					theta[i][j] = 3;
 				else
 					theta[i][j] = 1;
 			}
 		
-		boolean[][] edge = new boolean[width][height];
+		final float MINVAL = 0.05f;
+		final float MAXVAL = 0.15f;
+		final int LOOPNUM = 3;
+		final int NMSRANGE = 1;
+		
+		int[][] direction = {{1, 0}, {1, 1}, {0, 1}, {1, -1}};
+		float[][] rhonms = new float[height][width];
+		
 		for(int i = 0; i < height; ++i)
 			for(int j = 0; j < width; ++j)
 			{
-				
+				boolean maxium = true;
+				float cur = rho[i][j];
+				for(int k = -NMSRANGE; k <= NMSRANGE; ++k)
+				{
+					if(k==0)
+						continue;
+					int dir = theta[i][j];
+					int y = i + direction[dir][0]*k;
+					int x = j + direction[dir][1]*k;
+					try {
+						if(cur < rho[y][x])
+						{
+							maxium=false;
+							break;
+						}
+						
+					} catch (IndexOutOfBoundsException e) {}
+				}
+				rhonms[i][j] = maxium ? cur : 0.0f;
 			}
+		
+		boolean[][] isedge = new boolean[height][width];
+		for(int i = 0; i < height; ++i)
+			for(int j = 0; j < width; ++j)
+				isedge[i][j] = rhonms[i][j] > MAXVAL;
+		
+		int[][] neighbours = {{0,1},{0,-1},{-1,0},{1,0},{-1,-1},{1,-1},{-1,1},{1,1}};
+		
+		for(int k = 0; k < LOOPNUM; ++k)
+			for(int i = 0; i < height; ++i)
+				for(int j = 0; j < width; ++j)
+					if(!isedge[i][j] && rhonms[i][j]>MINVAL)
+					{
+						boolean betrue = false;
+						for (int[] js : neighbours) {
+							try {
+								if(isedge[i+js[0]][j+js[1]])
+								{
+									betrue=true;
+									break;
+								}
+							} catch (IndexOutOfBoundsException e) {}
+						}
+						if(betrue)
+							isedge[i][j] = true;
+					}
+		
+		Mat result = new Mat(width, height, 1);
+		
+		for(int i = 0; i < height; ++i)
+			for(int j = 0; j < width; ++j)
+				result.getData()[i][j][0] = isedge[i][j] ? 1.0f : 0.0f;
+		
+		return result;
 	}
 }
