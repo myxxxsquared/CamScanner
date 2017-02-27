@@ -38,15 +38,24 @@ public class EdgeDetection {
 	 */
 	public static Mat canny(Mat src)
 	{
-		assert(src.getDepth()==1);
+		//--------------------------------
+		//小阈值
+		final float MINVAL = 0.02f;
 		
-		final float MINVAL = 0.05f;
-		final float MAXVAL = 0.15f;
+		//大阈值
+		final float MAXVAL = 0.06f;
+		
+		//迭代次数
 		final int LOOPNUM = 3;
-		final int NMSRANGE = 1;
 		
-		int width = src.getWidth();
-		int height = src.getHeight();
+		//非最大抑制量
+		final int NMSRANGE = 5;
+		
+		//--------------------------------
+		
+		final int width = src.getWidth();
+		final int height = src.getHeight();
+		final int depth = src.getDepth();
 		
 		Mat blur = Convolution.convolution(src, generateGaussKernel());
 		Mat sx = Convolution.convolution(blur, generateSobelKernelX());
@@ -57,9 +66,15 @@ public class EdgeDetection {
 		for(int i = 0; i < height; ++i)
 			for(int j = 0; j < width; ++j)
 			{
-				float dx, dy;
-				dx = sx.getData()[i][j][0];
-				dy = sy.getData()[i][j][0];
+				float dx = 0.0f, dy = 0.0f;
+				for(int k = 0; k < depth; ++k)
+				{
+					dx += sx.getData()[i][j][k];
+					dy += sy.getData()[i][j][k];
+				}
+				dy /= depth;
+				dx /= depth;
+				
 				rho[i][j] = (float)Math.sqrt(dx*dx+dy*dy);
 				if(dx == 0)
 					dx = 0.00001f;

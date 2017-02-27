@@ -2,54 +2,70 @@ package camscanner;
 
 import java.util.ArrayList;
 
+
 public class LineDetection {
-	
-	public static class Line
-	{
-		public int x1, y1, x2, y2;
-		
-		public Line()
-		{
-			x1 = y1 = x2 = y2 = 0;
-		}
-		
-		public Line(int x1, int y1, int x2, int y2)
-		{
-			this.x1 = x1;
-			this.y1 = y1;
-			this.x2 = x2;
-			this.y2 = y2;
-		}
-	}
-	
+
+	/**
+	 * 哈夫变换直线检测，输入归一化边缘图
+	 */
 	public static Line[] hough(Mat edgeimage)
 	{
 		assert(edgeimage.getDepth() == 1);
 		
+		//非最大抑制量
+		final int NMSRANGE = 3;
+		//检测线阈值
+		final int DETECTVALUE = 100;
+		//搜索附近线范围
+		final int SEARCHRANGE = 5;
+		//最大间隔
+		final int SEARCHDIFF = 10;
+		//最小长度
+		final int SEARCHSTRENGTH = 300;
+		
 		final int width = edgeimage.getWidth();
 		final int height = edgeimage.getHeight();
-		final int houghw = 314;
+
 		final int houghhh = ((int)(Math.sqrt((double)height*height+(double)width*width)) + 1);
-		final int houghh = 2*((int)(Math.sqrt((double)height*height+(double)width*width)) + 1);
+		final int houghh = 2*houghhh;
+		final int houghwh = houghhh / 2;
+		final int houghw = houghwh * 2;
+		final double pih = Math.PI / 2;
+		final double houghscale = Math.PI / houghw;
 		
-		int[][] houghimg = new int[houghw][houghh];
+		final boolean[][] sourceimg = new boolean[height][width];
+		final int[][] houghimg = new int[houghw][houghh];
+		final boolean[][] lineimg = new boolean[houghw][houghh];
+		
+		double[] sinl = new double[houghw];
+		double[] cosl = new double[houghw];
+		
+		for(int i = 0; i < houghw; ++i)
+		{
+			double theta = i * houghscale - pih;
+			sinl[i] = Math.sin(theta);
+			cosl[i] = Math.cos(theta);
+		}
+		
+		for(int i = 0; i < height; ++i)
+			for(int j = 0; j < width; ++j)
+				sourceimg[i][j]=edgeimage.getData()[i][j][0]>0.5f;
 		
 		for(int i = 0; i < houghw; ++i)
 			for(int j  = 0; j < houghh; ++j)
 				houghimg[i][j] = 0;
-		
-		boolean[][] sourceimg = new boolean[height][width];
-		
+								
 		for(int i = 0; i < height; ++i)
 			for(int j = 0; j < width; ++j)
-				if(sourceimg[i][j] = (edgeimage.getData()[i][j][0]>0.5f))
+			{
+				if(sourceimg[i][j])
 				{
-					int lasty = j + houghhh;
+					int lasty = (int)(-i) + houghhh;
 					
 					for(int x = 1; x < houghw; ++x)
 					{
-						double theta = x/100-1.58;
-						int y = (int)Math.round(Math.cos(theta)*j+Math.sin(theta)*i) + houghhh;
+						double theta = x*houghscale-pih;
+						int y = (int)(cosl[x]*j+sinl[x]*i) + houghhh;
 						int midy = (lasty + y) / 2;
 						if(y > lasty)
 						{
@@ -62,82 +78,80 @@ public class LineDetection {
 						{
 							for(int cury = lasty; cury >= midy; --cury)
 								houghimg[x-1][cury]++;
-							for(int cury = midy + 1; cury > y; --cury)
+							for(int cury = midy - 1; cury > y; --cury)
 								houghimg[x][cury]++;
 						}
 						
 						lasty = y;
 					}
+					
 				}
+			}
 		
-		boolean[][] lineimg = new boolean[houghw][houghh];
-		
-		final int NMSRANGE = 2;
-		final int DETECTVALUE = 20;
-		
-		for(int i = 0; i < houghw; ++i)
-			for(int j = 0; j < houghw; ++j)
+		for(int x = 0; x < houghw; ++x)
+			for(int y = 0; y < houghh; ++y)
 			{
-				int cur = houghimg[i][j];
+				int cur = houghimg[x][y];
 				boolean istrue = cur > DETECTVALUE;
 				
 				for(int i2 = -NMSRANGE; i2 <= NMSRANGE && istrue; ++i2)
 					for(int j2 = -NMSRANGE; j2 <= NMSRANGE; ++j2)
 						try {
-							if(houghimg[i+i2][j+j2] > cur)
+							if(houghimg[x+i2][y+j2] > cur)
 							{
 								istrue=false;
 								break;
 							}
 						} catch (IndexOutOfBoundsException e) {}
 				
-				lineimg[i][j] = istrue;
+				lineimg[x][y] = istrue;
 			}
 		
 		ArrayList<Line> result = new ArrayList<Line>();
 		
-		final int SEARCHRANGE = 1;
-		final int SEARCHDIFF = 5;
-		final int SEARCHSTRENGTH = 5;
 		
-		for(int i = 0; i < houghw; ++i)
+		for(int x = 0; x < houghw; ++x)
 		{
-			double theta = i/100-1.58;
-			double sintheta = Math.sin(theta);
-			double costheta = Math.cos(theta);
+			double theta = x*houghscale-pih;
+			double sintheta = sinl[x];
+			double costheta = cosl[x];
 			
-			for(int j = 0; j < houghw; ++j)
-				if(lineimg[i][j])
+			for(int y = 0; y < houghh; ++y)
+				if(lineimg[x][y])
 				{
-					if(theta > 0.79 || theta < -0.79)
+					if(theta < 0.79 && theta > -0.79)
 					{
 						int strength = 0;
-						int beginval = -1;
-						int beginx = -1;
+						int begini = -1;
+						int beginj = -1;
 						int diff = 0;
 						
-						for(int y = 0; y < height; ++y)
+						for(int i = 0; i < height; ++i)
 						{
-							int x = (int) Math.round((j - houghhh - y * sintheta)/costheta);
+							int j = (int)((y - houghhh - i * sintheta)/costheta);
 							boolean have = false;
 							for(int k = -SEARCHRANGE; k <= SEARCHRANGE; ++k)
 							{
-								int x2 = x+k;
-								if(x2<0 || x2 >= width)
+								int j2 = j+k;
+								if(j2<0 || j2 >= width)
 									break;
-								if(sourceimg[y][x2])
+								if(sourceimg[i][j2])
 								{
 									have = true;
 									break;
 								}
 							}
-								
-							if(have)
+							
+							if(y == height - 1 && diff >= 0 && strength > SEARCHSTRENGTH)
 							{
-								if(beginval==-1)
+								result.add(new Line(beginj, begini, j, i));
+							}
+							else if(have)
+							{
+								if(begini==-1)
 								{
-									beginval = y;
-									beginx = x;
+									begini = i;
+									beginj = j;
 									strength=0;
 								}
 								strength++;
@@ -149,9 +163,10 @@ public class LineDetection {
 								if(diff == 0)
 								{
 									if(strength > SEARCHSTRENGTH)
-										result.add(new Line(beginx, beginval,  (int) Math.round((j - houghhh - (y-5) * sintheta)/costheta), y - 5));
+										result.add(new Line(beginj, begini,  (int)((y - houghhh - (i-SEARCHDIFF) * sintheta)/costheta), i - SEARCHDIFF));
 									strength = 0;
-									beginval = -1;
+									begini = -1;
+									beginj = -1;
 								}
 							}
 						}
@@ -159,32 +174,36 @@ public class LineDetection {
 					else
 					{
 						int strength = 0;
-						int beginval = -1;
-						int beginy = -1;
+						int begini = -1;
+						int beginj = -1;
 						int diff = 0;
 						
-						for(int x = 0; x < width; ++x)
+						for(int j = 0; j < width; ++j)
 						{
-							int y = (int) Math.round((j - houghhh - x * costheta)/sintheta);
+							int i = (int)((y - houghhh - j * costheta)/sintheta);
 							boolean have = false;
 							for(int k = -SEARCHRANGE; k <= SEARCHRANGE; ++k)
 							{
-								int y2 = y+k;
-								if(y2<0 || y2 > width)
+								int i2 = i+k;
+								if(i2<0 || i2 >= height)
 									break;
-								if(sourceimg[y2][x])
+								if(sourceimg[i2][j])
 								{
 									have = true;
 									break;
 								}
 							}
 							
-							if(have)
+							if(j == width - 1 && diff >= 0 && strength > SEARCHSTRENGTH)
 							{
-								if(beginval==-1)
+								result.add(new Line(beginj, begini, j, i));
+							}
+							else if(have)
+							{
+								if(begini==-1)
 								{
-									beginval = x;
-									beginy = y;
+									begini = i;
+									beginj = j;
 									strength = 0;
 								}
 								strength++;
@@ -196,8 +215,9 @@ public class LineDetection {
 								if(diff == 0)
 								{
 									if(strength > SEARCHSTRENGTH)
-										result.add(new Line(beginval, beginy, x - 5, (int) Math.round((j - houghhh - (x-5) * costheta)/sintheta)));
-									beginval = -1;
+										result.add(new Line(beginj, begini, j - SEARCHDIFF, (int)((y - houghhh - (j-SEARCHDIFF) * costheta)/sintheta)));
+									begini = -1;
+									beginj = -1;
 									strength = 0;
 								}
 							}
