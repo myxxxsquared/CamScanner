@@ -1,7 +1,7 @@
 package camscanner;
 
-public class Convolution {
-	
+public class ImageOperation {
+
 	public static Mat convolution(Mat src, Mat kernel)
 	{
 		assert(kernel.getDepth()==1);
@@ -45,5 +45,35 @@ public class Convolution {
 		
 		return result;
 	}
-
+	
+	public static Mat generateSobelKernelX()
+	{
+		float[][][] data = {
+				{{-1.0f},{0.0f},{1.0f}},
+				{{-2.0f},{0.0f},{2.0f}},
+				{{-1.0f},{0.0f},{1.0f}}};
+		return new Mat(3, 3, 1, data);
+	}
+	
+	public static Mat generateSobelKernelY()
+	{
+		float[][][] data = {
+				{{1.0f},{2.0f},{1.0f}},
+				{{0.0f},{0.0f},{0.0f}},
+				{{-1.0f},{-2.0f},{-1.0f}}};
+		return new Mat(3, 3, 1, data);
+	}
+	
+	/**
+	 * ¸ßË¹¾í»ýºË
+	 */
+	public static Mat generateGaussKernel()
+	{
+		float [][][] data = {{{0.002969f},{0.013306f},{0.021938f},{0.013306f},{0.002969f}},
+				{{0.013306f},{0.059634f},{0.09832f},{0.059634f},{0.013306f}},
+				{{0.021938f},{0.09832f},{0.1621f},{0.09832f},{0.021938f}},
+				{{0.013306f},{0.059634f},{0.09832f},{0.059634f},{0.013306f}},
+				{{0.002969f},{0.013306f},{0.021938f},{0.013306f},{0.002969f}}};
+		return new Mat(5, 5, 1, data);
+	}
 }

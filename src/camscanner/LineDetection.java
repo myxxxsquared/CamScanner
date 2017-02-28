@@ -124,7 +124,6 @@ public class LineDetection {
 					{
 						int strength = 0;
 						int begini = -1;
-						int beginj = -1;
 						int diff = 0;
 						
 						for(int i = 0; i < height; ++i)
@@ -156,7 +155,6 @@ public class LineDetection {
 								if(begini==-1)
 								{
 									begini = i;
-									beginj = j;
 									strength=0;
 								}
 								strength++;
@@ -175,7 +173,6 @@ public class LineDetection {
 												i-SEARCHDIFF+EXTENDLENGTH));
 									strength = 0;
 									begini = -1;
-									beginj = -1;
 								}
 							}
 						}
@@ -183,7 +180,6 @@ public class LineDetection {
 					else
 					{
 						int strength = 0;
-						int begini = -1;
 						int beginj = -1;
 						int diff = 0;
 						
@@ -213,9 +209,8 @@ public class LineDetection {
 							}
 							else if(have)
 							{
-								if(begini==-1)
+								if(beginj==-1)
 								{
-									begini = i;
 									beginj = j;
 									strength = 0;
 								}
@@ -233,7 +228,6 @@ public class LineDetection {
 												(int)((y - houghhh - (beginj-EXTENDLENGTH) * costheta)/sintheta),
 												j - SEARCHDIFF + EXTENDLENGTH,
 												(int)((y - houghhh - (j-SEARCHDIFF+EXTENDLENGTH) * costheta)/sintheta)));
-									begini = -1;
 									beginj = -1;
 									strength = 0;
 								}

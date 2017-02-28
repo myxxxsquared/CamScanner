@@ -6,8 +6,6 @@ import java.io.File;
 import javax.imageio.*;
 import javax.swing.*;
 
-import org.w3c.dom.css.Rect;
-
 public class TestMain {
 
 	public static void main(String[] args) {
@@ -25,6 +23,8 @@ public class TestMain {
 		
 		final Line[] lines = LineDetection.hough(result);
 		final Rectangle rectangle = RectangleDetection.rectangleDetect(lines);
+		final BufferedImage imgresult = ImageRebuilder.rebuild(image, rectangle, 300, 300);
+		
 		
 		final BufferedImage img = new BufferedImage(
 				image.getWidth(), image.getHeight(), BufferedImage.TYPE_BYTE_GRAY);
@@ -52,9 +52,21 @@ public class TestMain {
 				g.drawLine(rectangle.x4, rectangle.y4, rectangle.x1, rectangle.y1);
 			}
 		};
+		
+		JFrame frame2 = new JFrame(){
+			private static final long serialVersionUID = 6415349721608360051L;
+
+			public void paint(java.awt.Graphics g)
+			{
+				super.paint(g);
+				g.drawImage(imgresult, 0, 0, null);
+			}
+		};
 
 		frame.setSize(500, 500);
 		frame.setVisible(true);
+		frame2.setSize(500, 500);
+		frame2.setVisible(true);
 	}
 
 }

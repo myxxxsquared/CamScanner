@@ -1,38 +1,6 @@
 package camscanner;
 
-public class EdgeDetection {
-	
-	public static Mat generateSobelKernelX()
-	{
-		float[][][] data = {
-				{{-1.0f},{0.0f},{1.0f}},
-				{{-2.0f},{0.0f},{2.0f}},
-				{{-1.0f},{0.0f},{1.0f}}};
-		return new Mat(3, 3, 1, data);
-	}
-	
-	public static Mat generateSobelKernelY()
-	{
-		float[][][] data = {
-				{{1.0f},{2.0f},{1.0f}},
-				{{0.0f},{0.0f},{0.0f}},
-				{{-1.0f},{-2.0f},{-1.0f}}};
-		return new Mat(3, 3, 1, data);
-	}
-	
-	/**
-	 * ¸ßË¹¾í»ýºË
-	 */
-	public static Mat generateGaussKernel()
-	{
-		float [][][] data = {{{0.002969f},{0.013306f},{0.021938f},{0.013306f},{0.002969f}},
-				{{0.013306f},{0.059634f},{0.09832f},{0.059634f},{0.013306f}},
-				{{0.021938f},{0.09832f},{0.1621f},{0.09832f},{0.021938f}},
-				{{0.013306f},{0.059634f},{0.09832f},{0.059634f},{0.013306f}},
-				{{0.002969f},{0.013306f},{0.021938f},{0.013306f},{0.002969f}}};
-		return new Mat(5, 5, 1, data);
-	}
-	
+public class EdgeDetection {	
 	/**
 	 * Canny±ßÔµ¼ì²â
 	 */
@@ -57,9 +25,9 @@ public class EdgeDetection {
 		final int height = src.getHeight();
 		final int depth = src.getDepth();
 		
-		final Mat blur = Convolution.convolution(src, generateGaussKernel());
-		final Mat sx = Convolution.convolution(blur, generateSobelKernelX());
-		final Mat sy = Convolution.convolution(blur, generateSobelKernelY());
+		final Mat blur = ImageOperation.convolution(src, ImageOperation.generateGaussKernel());
+		final Mat sx = ImageOperation.convolution(blur, ImageOperation.generateSobelKernelX());
+		final Mat sy = ImageOperation.convolution(blur, ImageOperation.generateSobelKernelY());
 		
 		final int[][] theta = new int[height][width];
 		final float[][] rho = new float[height][width];
