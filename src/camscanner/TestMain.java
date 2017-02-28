@@ -6,6 +6,8 @@ import java.io.File;
 import javax.imageio.*;
 import javax.swing.*;
 
+import org.w3c.dom.css.Rect;
+
 public class TestMain {
 
 	public static void main(String[] args) {
@@ -18,13 +20,11 @@ public class TestMain {
 			e.printStackTrace();
 		}
 		
-		final BufferedImage image2 = image;
-		
 		final Mat gray = Mat.ToMat(image);
-//		LineDetection.hough(gray);
 		Mat result = EdgeDetection.canny(gray);
 		
 		final Line[] lines = LineDetection.hough(result);
+		final Rectangle rectangle = RectangleDetection.rectangleDetect(lines);
 		
 		final BufferedImage img = new BufferedImage(
 				image.getWidth(), image.getHeight(), BufferedImage.TYPE_BYTE_GRAY);
@@ -35,6 +35,8 @@ public class TestMain {
 			}
 		
 		JFrame frame = new JFrame(){
+			private static final long serialVersionUID = -3500187028665125224L;
+
 			public void paint(java.awt.Graphics g)
 			{
 				super.paint(g);
@@ -43,22 +45,16 @@ public class TestMain {
 				for (Line line : lines) {
 					g.drawLine(line.x1, line.y1, line.x2, line.y2);
 				}
+				g.setColor(Color.BLUE);
+				g.drawLine(rectangle.x1, rectangle.y1, rectangle.x2, rectangle.y2);
+				g.drawLine(rectangle.x2, rectangle.y2, rectangle.x3, rectangle.y3);
+				g.drawLine(rectangle.x3, rectangle.y3, rectangle.x4, rectangle.y4);
+				g.drawLine(rectangle.x4, rectangle.y4, rectangle.x1, rectangle.y1);
 			}
 		};
 
-//		JFrame frame = new JFrame("titlename");
 		frame.setSize(500, 500);
 		frame.setVisible(true);
-		
-//		try {
-//			ImageIO.write(img, "png", new File("Z:\\out.png"));
-//		} catch (Exception e) {
-//			// TODO: handle exception
-//		}
-//		JLabel label = new JLabel();
-//		label.setIcon(new ImageIcon(img));
-//		label.setVisible(true);
-//		frame.getContentPane().add(label);
 	}
 
 }

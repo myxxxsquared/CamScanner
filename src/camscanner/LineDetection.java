@@ -13,7 +13,7 @@ public class LineDetection {
 		assert(edgeimage.getDepth() == 1);
 		
 		//非最大抑制量
-		final int NMSRANGE = 3;
+		final int NMSRANGE = 10;
 		//检测线阈值
 		final int DETECTVALUE = 100;
 		//搜索附近线范围
@@ -22,6 +22,8 @@ public class LineDetection {
 		final int SEARCHDIFF = 10;
 		//最小长度
 		final int SEARCHSTRENGTH = 300;
+		//直线延长长度
+		final int EXTENDLENGTH = 20;
 		
 		final int width = edgeimage.getWidth();
 		final int height = edgeimage.getHeight();
@@ -37,8 +39,8 @@ public class LineDetection {
 		final int[][] houghimg = new int[houghw][houghh];
 		final boolean[][] lineimg = new boolean[houghw][houghh];
 		
-		double[] sinl = new double[houghw];
-		double[] cosl = new double[houghw];
+		final double[] sinl = new double[houghw];
+		final double[] cosl = new double[houghw];
 		
 		for(int i = 0; i < houghw; ++i)
 		{
@@ -64,7 +66,6 @@ public class LineDetection {
 					
 					for(int x = 1; x < houghw; ++x)
 					{
-						double theta = x*houghscale-pih;
 						int y = (int)(cosl[x]*j+sinl[x]*i) + houghhh;
 						int midy = (lasty + y) / 2;
 						if(y > lasty)
@@ -142,9 +143,13 @@ public class LineDetection {
 								}
 							}
 							
-							if(y == height - 1 && diff >= 0 && strength > SEARCHSTRENGTH)
+							if(i == height - 1 && diff >= 0 && strength > SEARCHSTRENGTH)
 							{
-								result.add(new Line(beginj, begini, j, i));
+								result.add(new Line(
+										(int)((y - houghhh - (begini-EXTENDLENGTH) * sintheta)/costheta), 
+										begini-EXTENDLENGTH, 
+										(int)((y - houghhh - (i+EXTENDLENGTH) * sintheta)/costheta),
+										i+EXTENDLENGTH));
 							}
 							else if(have)
 							{
@@ -163,7 +168,11 @@ public class LineDetection {
 								if(diff == 0)
 								{
 									if(strength > SEARCHSTRENGTH)
-										result.add(new Line(beginj, begini,  (int)((y - houghhh - (i-SEARCHDIFF) * sintheta)/costheta), i - SEARCHDIFF));
+										result.add(new Line(
+												(int)((y - houghhh - (begini-EXTENDLENGTH) * sintheta)/costheta),
+												begini-EXTENDLENGTH,
+												(int)((y - houghhh - (i-SEARCHDIFF+EXTENDLENGTH) * sintheta)/costheta),
+												i-SEARCHDIFF+EXTENDLENGTH));
 									strength = 0;
 									begini = -1;
 									beginj = -1;
@@ -196,7 +205,11 @@ public class LineDetection {
 							
 							if(j == width - 1 && diff >= 0 && strength > SEARCHSTRENGTH)
 							{
-								result.add(new Line(beginj, begini, j, i));
+								result.add(new Line(
+										beginj - EXTENDLENGTH,
+										(int)((y - houghhh - (beginj-EXTENDLENGTH) * costheta)/sintheta),
+										j+EXTENDLENGTH,
+										(int)((y - houghhh - (j+EXTENDLENGTH) * costheta)/sintheta)));
 							}
 							else if(have)
 							{
@@ -215,7 +228,11 @@ public class LineDetection {
 								if(diff == 0)
 								{
 									if(strength > SEARCHSTRENGTH)
-										result.add(new Line(beginj, begini, j - SEARCHDIFF, (int)((y - houghhh - (j-SEARCHDIFF) * costheta)/sintheta)));
+										result.add(new Line(
+												beginj - EXTENDLENGTH,
+												(int)((y - houghhh - (beginj-EXTENDLENGTH) * costheta)/sintheta),
+												j - SEARCHDIFF + EXTENDLENGTH,
+												(int)((y - houghhh - (j-SEARCHDIFF+EXTENDLENGTH) * costheta)/sintheta)));
 									begini = -1;
 									beginj = -1;
 									strength = 0;

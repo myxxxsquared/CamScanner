@@ -57,12 +57,19 @@ public class EdgeDetection {
 		final int height = src.getHeight();
 		final int depth = src.getDepth();
 		
-		Mat blur = Convolution.convolution(src, generateGaussKernel());
-		Mat sx = Convolution.convolution(blur, generateSobelKernelX());
-		Mat sy = Convolution.convolution(blur, generateSobelKernelY());
+		final Mat blur = Convolution.convolution(src, generateGaussKernel());
+		final Mat sx = Convolution.convolution(blur, generateSobelKernelX());
+		final Mat sy = Convolution.convolution(blur, generateSobelKernelY());
 		
-		int[][] theta = new int[height][width];
-		float[][] rho = new float[height][width];
+		final int[][] theta = new int[height][width];
+		final float[][] rho = new float[height][width];
+
+		final int[][] direction = {{1, 0}, {1, 1}, {0, 1}, {1, -1}};
+		final float[][] rhonms = new float[height][width];
+		
+		final boolean[][] isedge = new boolean[height][width];
+		final int[][] neighbours = {{0,1},{0,-1},{-1,0},{1,0},{-1,-1},{1,-1},{-1,1},{1,1}};
+		
 		for(int i = 0; i < height; ++i)
 			for(int j = 0; j < width; ++j)
 			{
@@ -89,11 +96,6 @@ public class EdgeDetection {
 					theta[i][j] = 1;
 			}
 		
-		
-		
-		int[][] direction = {{1, 0}, {1, 1}, {0, 1}, {1, -1}};
-		float[][] rhonms = new float[height][width];
-		
 		for(int i = 0; i < height; ++i)
 			for(int j = 0; j < width; ++j)
 			{
@@ -118,12 +120,10 @@ public class EdgeDetection {
 				rhonms[i][j] = maxium ? cur : 0.0f;
 			}
 		
-		boolean[][] isedge = new boolean[height][width];
+		
 		for(int i = 0; i < height; ++i)
 			for(int j = 0; j < width; ++j)
 				isedge[i][j] = rhonms[i][j] > MAXVAL;
-		
-		int[][] neighbours = {{0,1},{0,-1},{-1,0},{1,0},{-1,-1},{1,-1},{-1,1},{1,1}};
 		
 		for(int k = 0; k < LOOPNUM; ++k)
 			for(int i = 0; i < height; ++i)
